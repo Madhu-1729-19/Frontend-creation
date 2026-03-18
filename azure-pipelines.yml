@@ -27,7 +27,7 @@ stages:
         repository: 'frontendcreation'
         command: 'build'
         Dockerfile: '**/Dockerfile'
-        tags: |
+        tags:  |
           latest
           frontend_$(Build.BuildId)
       name: buildImage
@@ -46,7 +46,7 @@ stages:
         repository: 'frontendcreation'
         command: 'push'
         tags:  |
-           latest
+          latest
           $(version)
 - stage: CleanupDockerImages
   displayName: 'Clean Up Docker Images'
