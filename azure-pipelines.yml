@@ -24,10 +24,10 @@ stages:
       displayName: 'Build Docker Image'
       inputs:
         containerRegistry: 'hanuman'
-        repository: 'frontendcreation'
+        repository: 'frontend'
         command: 'build'
         Dockerfile: '**/Dockerfile'
-        tags:  |
+        tags: |
           latest
           frontend_$(Build.BuildId)
       name: buildImage
@@ -43,10 +43,10 @@ stages:
       displayName: 'Push Docker Image' 
       inputs:
         containerRegistry: 'hanuman'
-        repository: 'frontendcreation'
+        repository: 'frontend'
         command: 'push'
         tags:  |
-          latest
+           latest
           $(version)
 - stage: CleanupDockerImages
   displayName: 'Clean Up Docker Images'
@@ -55,9 +55,9 @@ stages:
   - job: cleanup
     displayName: 'Clean Up Docker Images'
     steps:
-   - script:  |
-    docker images -aq | xargs -r docker rmi -f
-    displayName: 'Remove all Docker images'
+    - script: |
+        docker rmi -f $(docker images -aq)
+      displayName: 'Remove all Docker images'
 
 - stage: ModifyAndPublishYaml
   displayName: 'Modify and Publish Kubernetes Manifest'
