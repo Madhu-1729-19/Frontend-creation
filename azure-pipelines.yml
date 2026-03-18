@@ -24,7 +24,7 @@ stages:
       displayName: 'Build Docker Image'
       inputs:
         containerRegistry: 'hanuman'
-        repository: 'frontend'
+        repository: 'frontendcreation'
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: |
@@ -43,7 +43,7 @@ stages:
       displayName: 'Push Docker Image' 
       inputs:
         containerRegistry: 'hanuman'
-        repository: 'frontend'
+        repository: 'frontendcreation'
         command: 'push'
         tags:  |
            latest
