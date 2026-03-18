@@ -27,10 +27,9 @@ stages:
         repository: 'frontendcreation'
         command: 'build'
         Dockerfile: '**/Dockerfile'
-        tags:  |
+        tags: |
           latest
           frontend_$(Build.BuildId)
-      name: buildImage
 
 - stage: PushDockerImage
   displayName: 'Push Docker Image'
@@ -45,9 +44,10 @@ stages:
         containerRegistry: 'hanuman'
         repository: 'frontendcreation'
         command: 'push'
-        tags:  |
+        tags: |
           latest
           $(version)
+
 - stage: CleanupDockerImages
   displayName: 'Clean Up Docker Images'
   dependsOn: PushDockerImage
@@ -56,7 +56,7 @@ stages:
     displayName: 'Clean Up Docker Images'
     steps:
     - script: |
-        docker rmi -f $(docker images -aq)
+        docker images -aq | xargs -r docker rmi -f
       displayName: 'Remove all Docker images'
 
 - stage: ModifyAndPublishYaml
