@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: hanuman.azurecr.io/backendcreation:latest
+        image: hanuman.azurecr.io/frontendcreation:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 3000
