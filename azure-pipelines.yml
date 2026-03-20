@@ -1,81 +1,39 @@
-pool:
-  name: 'project'
-  
-variables:
-  version: 'frontend_$(Build.BuildId)'
-
-stages:
-- stage: CheckoutCode
-  displayName: 'Checkout Code'
-  jobs:
-  - job: checkout
-    displayName: 'Checkout Code'
-    steps:
-    - checkout: self
-
-- stage: BuildDockerImage
-  displayName: 'Build Docker Image'
-  dependsOn: CheckoutCode
-  jobs:
-  - job: build
-    displayName: 'Build Docker Image'
-    steps:
-    - task: Docker@2
-      displayName: 'Build Docker Image'
-      inputs:
-        containerRegistry: 'hanuman'
-        repository: 'frontendcreation'
-        command: 'build'
-        Dockerfile: '**/Dockerfile'
-        tags: |
-          latest
-          frontend_$(Build.BuildId)
-
-- stage: PushDockerImage
-  displayName: 'Push Docker Image'
-  dependsOn: BuildDockerImage
-  jobs:
-  - job: push
-    displayName: 'Push Docker Image to ACR'
-    steps:
-    - task: Docker@2
-      displayName: 'Push Docker Image' 
-      inputs:
-        containerRegistry: 'hanuman'
-        repository: 'frontendcreation'
-        command: 'push'
-        tags: |
-          latest
-          $(version)
-
-- stage: CleanupDockerImages
-  displayName: 'Clean Up Docker Images'
-  dependsOn: PushDockerImage
-  jobs:
-  - job: cleanup
-    displayName: 'Clean Up Docker Images'
-    steps:
-    - script: |
-        docker images -aq | xargs -r docker rmi -f
-      displayName: 'Remove all Docker images'
-
-- stage: ModifyAndPublishYaml
-  displayName: 'Modify and Publish Kubernetes Manifest'
-  dependsOn: CleanupDockerImages
-  jobs:
-  - job: modifyAndPublish
-    displayName: 'Modify Kubernetes Manifest and Publish'
-    steps:
-    - script: |
-        echo "Replacing VERSION with $(version) in frontend.yml"
-        sed -i "s|VERSION|$(version)|g" frontend.yml
-        cat frontend.yml
-        cp frontend.yml $(Build.ArtifactStagingDirectory)/
-      displayName: 'Modify Kubernetes Manifest'
-
-    - task: PublishBuildArtifacts@1
-      displayName: 'Publish Modified Kubernetes Manifest'
-      inputs:
-        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-        ArtifactName: 'frontend'
-        publishLocation: 'Container'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: three-tier
+  labels:
+    role: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: frontend
+  template:
+    metadata:
+      labels:
+        role: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: hanuman.azurecr.io/frontendcreation:VERSION
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+      imagePullSecrets:
+      - name: acr-creds
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: three-tier
+spec:
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector:
+    role: frontend
+  type: LoadBalancer
